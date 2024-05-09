@@ -1,15 +1,33 @@
-import express, { Request, Response } from 'express'
-import bodyParser from 'body-parser'
+import express, { Application, Request, Response } from 'express';
+import bodyParser from 'body-parser';
+import path from 'path';
 
-const app: express.Application = express()
-const address: string = "0.0.0.0:3000"
+import userRoutes from './router/userRouter';
+import productRoutes from './router/productRouter';
+import orderRoutes from './handlers/order';
 
-app.use(bodyParser.json())
+const app: Application = express();
 
-app.get('/', function (req: Request, res: Response) {
-    res.send('Hello World!')
-})
+let port = 3000;
 
-app.listen(3000, function () {
-    console.log(`starting app on: ${address}`)
-})
+if (process.env.ENV === 'test') {
+  console.log(process.env.BCRYPT_PASSWORD);
+  port = 3001;
+}
+
+const address = `127.0.0.1:${port}`;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+userRoutes(app);
+productRoutes(app);
+orderRoutes(app);
+
+app.listen(port, () => {
+  console.info(`Express is listening at http://${address}`);
+});
+
+export default app;
